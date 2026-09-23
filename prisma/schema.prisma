@@ -1,0 +1,167 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SituationStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum ActionStatus {
+  PROPOSED
+  APPROVED
+  IN_PROGRESS
+  COMPLETED
+  REJECTED
+}
+
+model User {
+  id String @id @default(cuid())
+  email String @unique
+  name String?
+  createdAt DateTime @default(now())
+  situations SituationMember[]
+  documents Document[]
+  actions Action[] @relation("ActionAssignee")
+}
+
+model Situation {
+  id String @id @default(cuid())
+  title String
+  status SituationStatus @default(ACTIVE)
+  progress Int @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  members SituationMember[]
+  documents Document[]
+  events Event[]
+  actions Action[]
+  insights Insight[]
+  missingItems MissingItem[]
+}
+
+model SituationMember {
+  situationId String
+  userId String
+  role String @default("member")
+  situation Situation @relation(fields: [situationId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@id([situationId, userId])
+}
+
+model Document {
+  id String @id @default(cuid())
+  situationId String
+  ownerId String
+  name String
+  mimeType String
+  sizeBytes Int
+  storageKey String
+  extractedText String?
+  createdAt DateTime @default(now())
+  situation Situation @relation(fields: [situationId], references: [id], onDelete: Cascade)
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  versions DocumentVersion[]
+  chunks DocumentChunk[]
+  citations Citation[]
+}
+
+model DocumentVersion {
+  id String @id @default(cuid())
+  documentId String
+  version Int
+  storageKey String
+  extractedText String?
+  createdAt DateTime @default(now())
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  @@unique([documentId, version])
+}
+
+model DocumentChunk {
+  id String @id @default(cuid())
+  documentId String
+  chunkIndex Int
+  content String
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  @@unique([documentId, chunkIndex])
+}
+
+model Citation {
+  id String @id @default(cuid())
+  documentId String
+  sourceText String
+  page Int?
+  startOffset Int?
+  endOffset Int?
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+}
+
+model Event {
+  id String @id @default(cuid())
+  situationId String
+  title String
+  description String?
+  occurredAt DateTime?
+  createdAt DateTime @default(now())
+  situation Situation @relation(fields: [situationId], references: [id], onDelete: Cascade)
+}
+
+model Action {
+  id String @id @default(cuid())
+  situationId String
+  assigneeId String?
+  title String
+  description String?
+  status ActionStatus @default(PROPOSED)
+  dueAt DateTime?
+  approvedAt DateTime?
+  completedAt DateTime?
+  createdAt DateTime @default(now())
+  situation Situation @relation(fields: [situationId], references: [id], onDelete: Cascade)
+  assignee User? @relation("ActionAssignee", fields: [assigneeId], references: [id])
+  evidence ActionEvidence[]
+}
+
+model ActionEvidence {
+  id String @id @default(cuid())
+  actionId String
+  citationId String?
+  note String?
+  action Action @relation(fields: [actionId], references: [id], onDelete: Cascade)
+}
+
+model Insight {
+  id String @id @default(cuid())
+  situationId String
+  type String
+  title String
+  detail String
+  confidence Float?
+  createdAt DateTime @default(now())
+  situation Situation @relation(fields: [situationId], references: [id], onDelete: Cascade)
+}
+
+model MissingItem {
+  id String @id @default(cuid())
+  situationId String
+  label String
+  reason String?
+  resolved Boolean @default(false)
+  createdAt DateTime @default(now())
+  situation Situation @relation(fields: [situationId], references: [id], onDelete: Cascade)
+}
+
+model AuditEvent {
+  id String @id @default(cuid())
+  actorId String?
+  action String
+  entityType String
+  entityId String
+  metadata Json?
+  createdAt DateTime @default(now())
+}
