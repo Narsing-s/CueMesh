@@ -20,6 +20,12 @@ enum ActionStatus {
   REJECTED
 }
 
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
 model User {
   id String @id @default(cuid())
   email String @unique
@@ -28,6 +34,7 @@ model User {
   situations SituationMember[]
   documents Document[]
   actions Action[] @relation("ActionAssignee")
+  notifications Notification[]
 }
 
 model Situation {
@@ -43,6 +50,9 @@ model Situation {
   actions Action[]
   insights Insight[]
   missingItems MissingItem[]
+  entities SituationEntity[]
+  aiRuns AIRun[]
+  notifications Notification[]
 }
 
 model SituationMember {
@@ -87,6 +97,8 @@ model DocumentChunk {
   documentId String
   chunkIndex Int
   content String
+  embeddingModel String?
+  embedding Json?
   document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
   @@unique([documentId, chunkIndex])
 }
@@ -99,6 +111,7 @@ model Citation {
   startOffset Int?
   endOffset Int?
   document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  actionEvidence ActionEvidence[]
 }
 
 model Event {
@@ -125,6 +138,8 @@ model Action {
   situation Situation @relation(fields: [situationId], references: [id], onDelete: Cascade)
   assignee User? @relation("ActionAssignee", fields: [assigneeId], references: [id])
   evidence ActionEvidence[]
+  dependencies ActionDependency[] @relation("ActionDependencies")
+  dependents ActionDependency[] @relation("ActionDependents")
 }
 
 model ActionEvidence {
@@ -133,6 +148,15 @@ model ActionEvidence {
   citationId String?
   note String?
   action Action @relation(fields: [actionId], references: [id], onDelete: Cascade)
+  citation Citation? @relation(fields: [citationId], references: [id], onDelete: SetNull)
+}
+
+model ActionDependency {
+  actionId String
+  dependsOnActionId String
+  action Action @relation("ActionDependencies", fields: [actionId], references: [id], onDelete: Cascade)
+  dependsOn Action @relation("ActionDependents", fields: [dependsOnActionId], references: [id], onDelete: Cascade)
+  @@id([actionId, dependsOnActionId])
 }
 
 model Insight {
@@ -154,6 +178,87 @@ model MissingItem {
   resolved Boolean @default(false)
   createdAt DateTime @default(now())
   situation Situation @relation(fields: [situationId], references: [id], onDelete: Cascade)
+}
+
+model Entity {
+  id String @id @default(cuid())
+  kind String
+  name String
+  normalizedName String
+  createdAt DateTime @default(now())
+  situations SituationEntity[]
+  outgoing EntityRelationship[] @relation("RelationshipFrom")
+  incoming EntityRelationship[] @relation("RelationshipTo")
+  @@unique([kind, normalizedName])
+}
+
+model SituationEntity {
+  situationId String
+  entityId String
+  confidence Float?
+  situation Situation @relation(fields: [situationId], references: [id], onDelete: Cascade)
+  entity Entity @relation(fields: [entityId], references: [id], onDelete: Cascade)
+  @@id([situationId, entityId])
+}
+
+model EntityRelationship {
+  id String @id @default(cuid())
+  fromEntityId String
+  toEntityId String
+  type String
+  confidence Float?
+  sourceCitationId String?
+  fromEntity Entity @relation("RelationshipFrom", fields: [fromEntityId], references: [id], onDelete: Cascade)
+  toEntity Entity @relation("RelationshipTo", fields: [toEntityId], references: [id], onDelete: Cascade)
+  sourceCitation Citation? @relation(fields: [sourceCitationId], references: [id], onDelete: SetNull)
+}
+
+model AIRun {
+  id String @id @default(cuid())
+  situationId String
+  provider String
+  model String
+  task String
+  status String
+  inputHash String?
+  outputJson Json?
+  error String?
+  createdAt DateTime @default(now())
+  completedAt DateTime?
+  situation Situation @relation(fields: [situationId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id String @id @default(cuid())
+  situationId String
+  userId String?
+  channel String
+  status NotificationStatus @default(PENDING)
+  title String
+  body String
+  scheduledFor DateTime?
+  sentAt DateTime?
+  createdAt DateTime @default(now())
+  situation Situation @relation(fields: [situationId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+model Playbook {
+  id String @id @default(cuid())
+  name String
+  description String?
+  createdAt DateTime @default(now())
+  steps PlaybookStep[]
+}
+
+model PlaybookStep {
+  id String @id @default(cuid())
+  playbookId String
+  position Int
+  title String
+  description String?
+  playbook Playbook @relation(fields: [playbookId], references: [id], onDelete: Cascade)
+  @@unique([playbookId, position])
 }
 
 model AuditEvent {
