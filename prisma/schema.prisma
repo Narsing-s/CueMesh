@@ -112,6 +112,7 @@ model Citation {
   endOffset Int?
   document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
   actionEvidence ActionEvidence[]
+  entityRelationships EntityRelationship[]
 }
 
 model Event {
