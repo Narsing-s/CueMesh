@@ -1,17 +1,22 @@
 # CueMesh API foundation
 
-## Health
+## Core
 - GET /api/health
 - GET /api/db-health
-
-## Situations
-- GET /api/situations
-- POST /api/situations
+- GET/POST /api/situations
 - GET /api/situations/:id
+- POST /api/situations/:id/archive
+- POST /api/situations/:id/restore
+- GET/POST /api/situations/:id/events
 
 ## Documents
-- POST /api/documents — validates an upload boundary
+- POST /api/documents — validates upload boundary
 - GET /api/documents/metadata?situationId=...
+
+## Intelligence
+- POST /api/insights
+- GET /api/situations/:id/graph
+- GET /api/missing-items?situationId=...
 
 ## Actions
 - GET/POST /api/situations/:id/actions
@@ -19,11 +24,13 @@
 - POST /api/actions/:id/reject
 - POST /api/actions/:id/complete
 
-## Intelligence
-- POST /api/insights — reserved for configured AI processing
+## Follow-up
+- GET/POST /api/notifications?situationId=...
 
-## Gaps and audit
-- GET /api/missing-items?situationId=...
+## Playbooks
+- GET/POST /api/playbooks
+
+## Audit
 - GET /api/audit?entityId=...
 
-All write endpoints must receive authorization before production exposure. These routes are intentionally not a substitute for authentication.
+Production note: private routes require authentication and authorization before public exposure.
