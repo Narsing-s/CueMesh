@@ -1,14 +1,17 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-async function createsCycle(actionId: string, dependsOnActionId: string) {
+async function createsCycle(actionId: string, dependsOnActionId: string): Promise<boolean> {
   const seen = new Set<string>();
   let current: string | undefined = dependsOnActionId;
   while (current) {
     if (current === actionId) return true;
     if (seen.has(current)) return true;
     seen.add(current);
-    const edge = await prisma.actionDependency.findFirst({ where: { actionId: current } });
+    const edge: { dependsOnActionId: string } | null = await prisma.actionDependency.findFirst({
+      where: { actionId: current },
+      select: { dependsOnActionId: true }
+    });
     current = edge?.dependsOnActionId;
   }
   return false;
