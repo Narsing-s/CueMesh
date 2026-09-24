@@ -11,7 +11,7 @@ CueMesh is designed around situations rather than generic chat: understand conte
 ## Implemented foundation
 
 - Responsive dashboard and situation detail experience
-- Persistent situation CRUD through Prisma/PostgreSQL
+- Database-free situation CRUD through an in-memory server store
 - Situation archive/restore
 - Events, actions and human approval state machine
 - Action dependencies with cycle protection
@@ -47,17 +47,19 @@ The repository deliberately does **not** fake integrations. Before production us
 
 ## Local development
 
-Requirements: Node.js 20+ and PostgreSQL.
+Requirements: Node.js 20+.
 
     npm install
-    cp .env.example .env
-    npm run db:generate
-    npm run db:push
     npm run dev
 
-For local-only development, Docker Compose can start PostgreSQL.
+CueMesh does not require PostgreSQL, Prisma, Docker, or DATABASE_URL. All core situation, action, event, dependency, replay, notification, consent, audit, playbook, job and document-metadata operations run through the built-in database-free store.
+
+### Persistence boundary
+
+The application is intentionally database-free. Data is kept in the running application instance and is reset when that instance is restarted, redeployed, or recycled. This makes the app usable without provisioning a database, but it is not a substitute for durable multi-instance persistence.
 
 ## Deployment
+
 
 The app is structured for Next.js/Vercel, while PostgreSQL, object storage, AI, queues and notifications should be supplied by production services. Do not expose the application publicly until authentication/authorization and durable storage are configured.
 
