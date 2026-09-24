@@ -7,5 +7,5 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
     include:{entities:{include:{entity:{include:{outgoing:true,incoming:true}}}},documents:{include:{citations:true}}}
   });
   if (!situation) return NextResponse.json({ok:false,error:"Situation not found"},{status:404});
-  return NextResponse.json({ok:true, graph:{entities:situation.entities, citations:situation.documents.flatMap(d=>d.citations)}});
+  return NextResponse.json({ok:true, graph:{entities:situation.entities, citations:situation.documents.flatMap((d:any)=>d.citations)}});
 }
