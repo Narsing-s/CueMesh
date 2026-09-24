@@ -6,7 +6,7 @@ export async function GET(_: Request,{params}:{params:{id:string}}){
  if(!situation)return NextResponse.json({ok:false,error:"Situation not found"},{status:404});
  const total=(situation.documents?.length||0)+(situation.events?.length||0)+(situation.actions?.length||0);
  const unresolved=(situation.missingItems||[]).filter((x:any)=>!x.resolved).length;
- const progress=Math.min(100,Math.round(Math.max(0,total*20-unresolved*10)));
+ const progress=Math.min(100,Math.max(0,Math.round(total*20-unresolved*10)));
  return NextResponse.json({ok:true,situation:{...situation,progress}});
 }
 
