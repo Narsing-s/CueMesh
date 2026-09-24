@@ -3,7 +3,7 @@
 ## Working foundation
 - Mobile-first Next.js application
 - Strict TypeScript
-- Prisma PostgreSQL schema
+- Prisma database-free runtime schema
 - Situation persistence
 - Situation archive/restore
 - Situation events
