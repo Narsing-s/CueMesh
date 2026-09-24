@@ -16,7 +16,8 @@ export default function SituationPage({params}:{params:{id:string}}){
  const [followTitle,setFollowTitle]=useState("");
  const [followWhen,setFollowWhen]=useState("");
  const [graph,setGraph]=useState<any>(null);
- const [detecting,setDetecting]=useState(false);\n const [notifications,setNotifications]=useState<any[]>([]);
+ const [detecting,setDetecting]=useState(false);
+ const [notifications,setNotifications]=useState<any[]>([]);
  const fileRef=useRef<HTMLInputElement>(null);
 
  const load=async()=>{
@@ -25,7 +26,8 @@ export default function SituationPage({params}:{params:{id:string}}){
  };
  useEffect(()=>{load()},[params.id]);
  const loadGraph=async()=>{try{const r=await fetch("/api/situations/"+params.id+"/graph",{cache:"no-store"});const j=await r.json();if(r.ok)setGraph(j.graph)}catch{setGraph(null)}};
- useEffect(()=>{loadGraph()},[params.id]);\n useEffect(()=>{fetch("/api/notifications?situationId="+params.id,{cache:"no-store"}).then(r=>r.json()).then(j=>setNotifications(j.notifications||[])).catch(()=>setNotifications([]))},[params.id,message]);
+ useEffect(()=>{loadGraph()},[params.id]);
+ useEffect(()=>{fetch("/api/notifications?situationId="+params.id,{cache:"no-store"}).then(r=>r.json()).then(j=>setNotifications(j.notifications||[])).catch(()=>setNotifications([]))},[params.id,message]);
  const detectGaps=async()=>{setDetecting(true);setUploadError("");try{const r=await fetch("/api/situations/"+params.id+"/gaps",{method:"POST"});const j=await r.json();if(!r.ok)throw new Error(j.error||"Gap detection failed");setMessage(j.detected?"Detected "+j.detected+" new gap(s).":"No new gaps detected.");await load();await loadGraph()}catch(e:any){setUploadError(e.message||"Gap detection failed")}finally{setDetecting(false)}};
 
  const upload=async(file:File)=>{
