@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(_: Request,{params}:{params:{id:string}}){
- const situation=await prisma.situation.findUnique({where:{id:params.id},include:{documents:true,events:true,actions:true,insights:true,missingItems:true}});
+ const situation=await prisma.situation.findUnique({where:{id:params.id},include:{documents:{select:{id:true,name:true,mimeType:true,sizeBytes:true,createdAt:true}},events:true,actions:true,insights:true,missingItems:true}});
  if(!situation)return NextResponse.json({ok:false,error:"Situation not found"},{status:404});
  return NextResponse.json({ok:true,situation});
 }
