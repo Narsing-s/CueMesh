@@ -16,7 +16,7 @@ export default function SituationPage({params}:{params:{id:string}}){
  const [followTitle,setFollowTitle]=useState("");
  const [followWhen,setFollowWhen]=useState("");
  const [graph,setGraph]=useState<any>(null);
- const [detecting,setDetecting]=useState(false);
+ const [detecting,setDetecting]=useState(false);\n const [notifications,setNotifications]=useState<any[]>([]);
  const fileRef=useRef<HTMLInputElement>(null);
 
  const load=async()=>{
@@ -25,7 +25,7 @@ export default function SituationPage({params}:{params:{id:string}}){
  };
  useEffect(()=>{load()},[params.id]);
  const loadGraph=async()=>{try{const r=await fetch("/api/situations/"+params.id+"/graph",{cache:"no-store"});const j=await r.json();if(r.ok)setGraph(j.graph)}catch{setGraph(null)}};
- useEffect(()=>{loadGraph()},[params.id]);
+ useEffect(()=>{loadGraph()},[params.id]);\n useEffect(()=>{fetch("/api/notifications?situationId="+params.id,{cache:"no-store"}).then(r=>r.json()).then(j=>setNotifications(j.notifications||[])).catch(()=>setNotifications([]))},[params.id,message]);
  const detectGaps=async()=>{setDetecting(true);setUploadError("");try{const r=await fetch("/api/situations/"+params.id+"/gaps",{method:"POST"});const j=await r.json();if(!r.ok)throw new Error(j.error||"Gap detection failed");setMessage(j.detected?"Detected "+j.detected+" new gap(s).":"No new gaps detected.");await load();await loadGraph()}catch(e:any){setUploadError(e.message||"Gap detection failed")}finally{setDetecting(false)}};
 
  const upload=async(file:File)=>{
@@ -86,7 +86,7 @@ export default function SituationPage({params}:{params:{id:string}}){
   <section className="detailGrid">
    <article className="card"><h2><AlertTriangle size={18}/> Gap detection</h2><p className="muted">Check for missing evidence, timeline information and next actions.</p><button className="secondary" disabled={detecting} onClick={detectGaps}>{detecting?"Checking…":"Detect gaps"}</button></article>
    <article className="card"><h2><CheckCircle2 size={18}/> Human approval</h2><p className="muted">Proposed actions stay pending until you explicitly approve or reject them.</p><b>{data.actions.filter(x=>x.status==="PROPOSED").length} action(s) awaiting approval</b></article>
-   <article className="card"><h2><GitBranch size={18}/> Life graph</h2><p className="muted">{graph?.nodes?.length||0} nodes · {graph?.edges?.length||0} relationships</p>{graph?.nodes?.length?<div style={{display:"grid",gap:6}}>{graph.nodes.slice(0,12).map((n:any)=><div key={n.id} style={{padding:"6px 8px",border:"1px solid var(--line,#ddd)",borderRadius:8}}><b>{n.type}</b> · {n.label}{n.status?" · "+n.status:""}</div>)}</div>:<p className="muted">Add documents, events or actions to build the graph.</p>}</article>
+   <article className="card"><h2><GitBranch size={18}/> Life graph</h2><p className="muted">{graph?.nodes?.length||0} nodes · {graph?.edges?.length||0} relationships</p>{graph?.nodes?.length?<div style={{display:"grid",gap:8}}><div style={{overflowX:"auto",border:"1px solid var(--line,#ddd)",borderRadius:12,padding:8}}><svg width="620" height="260" viewBox="0 0 620 260" role="img" aria-label="CueMesh life graph"><line x1="310" y1="130" x2="110" y2="60" stroke="currentColor" opacity=".25"/><line x1="310" y1="130" x2="510" y2="60" stroke="currentColor" opacity=".25"/><line x1="310" y1="130" x2="110" y2="200" stroke="currentColor" opacity=".25"/><line x1="310" y1="130" x2="510" y2="200" stroke="currentColor" opacity=".25"/>{graph.nodes.slice(0,5).map((n:any,i:number)=>{const p=[[310,130],[110,60],[510,60],[110,200],[510,200]][i];return <g key={n.id}><circle cx={p[0]} cy={p[1]} r={i===0?38:30} fill="var(--card,#fff)" stroke="currentColor"/><text x={p[0]} y={p[1]-3} textAnchor="middle" fontSize="11">{String(n.type).slice(0,14)}</text><text x={p[0]} y={p[1]+12} textAnchor="middle" fontSize="9">{String(n.label).slice(0,18)}</text></g>})}</svg></div><div style={{display:"grid",gap:6}}>{graph.nodes.slice(0,12).map((n:any)=><div key={n.id} style={{padding:"6px 8px",border:"1px solid var(--line,#ddd)",borderRadius:8}}><b>{n.type}</b> · {n.label}{n.status?" · "+n.status:""}</div>)}</div></div>:<p className="muted">Add documents, events or actions to build the graph.</p>}</article>
   </section>
 
   <section className="detailGrid">
@@ -97,7 +97,7 @@ export default function SituationPage({params}:{params:{id:string}}){
     {data.actions.length?data.actions.map(x=><div key={x.id} style={{padding:"10px 0",borderBottom:"1px solid var(--line, #ddd)"}}><b>{x.title}</b><p className="muted">{x.status}</p><div style={{display:"flex",gap:6,flexWrap:"wrap"}}>{x.status==="PROPOSED"&&<><button className="secondary" onClick={()=>actionUpdate(x.id,"approve")}><Check size={14}/> Approve</button><button className="ghost" onClick={()=>actionUpdate(x.id,"reject")}><X size={14}/> Reject</button></>}{(x.status==="APPROVED"||x.status==="IN_PROGRESS")&&<button className="secondary" onClick={()=>actionUpdate(x.id,"complete")}><CheckCircle2 size={14}/> Complete</button>}</div></div>):<p className="muted">No follow-up actions yet.</p>}
    </article>
 
-   <article className="card"><h2><Bell size={18}/> Follow-up reminder</h2><input value={followTitle} onChange={e=>setFollowTitle(e.target.value)} placeholder="Reminder title"/><input type="datetime-local" value={followWhen} onChange={e=>setFollowWhen(e.target.value)} style={{marginTop:8}}/><button className="primary full" onClick={scheduleFollowUp} style={{marginTop:8}}>Schedule follow-up</button></article>
+   <article className="card"><h2><Bell size={18}/> Follow-up reminder</h2><input value={followTitle} onChange={e=>setFollowTitle(e.target.value)} placeholder="Reminder title"/><input type="datetime-local" value={followWhen} onChange={e=>setFollowWhen(e.target.value)} style={{marginTop:8}}/><button className="primary full" onClick={scheduleFollowUp} style={{marginTop:8}}>Schedule follow-up</button>{notifications.length>0&&<div style={{marginTop:12}}>{notifications.map((n:any)=><div key={n.id} style={{padding:"8px 0",borderTop:"1px solid var(--line,#ddd)"}}><b>{n.title}</b><div className="muted">{n.scheduledFor?new Date(n.scheduledFor).toLocaleString():"No time"} · {n.status||"PENDING"}</div></div>)}</div>}</article>
 
    <article className="card"><h2><Clock3 size={18}/> Timeline</h2>{data.events.length?data.events.map(x=><p key={x.id}>{x.title}</p>):<p className="muted">No events yet.</p>}</article>
   </section>
