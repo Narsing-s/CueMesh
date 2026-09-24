@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, CheckCircle2, FileText, AlertTriangle, Clock3, Upload, Plus, Bell, X, Check, CircleX } from "lucide-react";
+import { ArrowLeft, CheckCircle2, FileText, AlertTriangle, Clock3, Upload, Plus, Bell, X, Check, GitBranch } from "lucide-react";
 
 type Situation={id:string;title:string;status:string;progress:number;documents:{id:string;name:string;mimeType?:string;sizeBytes?:number}[];events:{id:string;title:string;description?:string|null}[];actions:{id:string;title:string;status:string;dueAt?:string|null}[];missingItems:{id:string;label:string;reason?:string|null;resolved:boolean}[];insights:{id:string;title:string;detail:string;confidence?:number|null}[]};
 
@@ -15,6 +15,8 @@ export default function SituationPage({params}:{params:{id:string}}){
  const [actionTitle,setActionTitle]=useState("");
  const [followTitle,setFollowTitle]=useState("");
  const [followWhen,setFollowWhen]=useState("");
+ const [graph,setGraph]=useState<any>(null);
+ const [detecting,setDetecting]=useState(false);
  const fileRef=useRef<HTMLInputElement>(null);
 
  const load=async()=>{
@@ -22,6 +24,9 @@ export default function SituationPage({params}:{params:{id:string}}){
    catch(e:any){setError(e.message||"Unable to load")}
  };
  useEffect(()=>{load()},[params.id]);
+ const loadGraph=async()=>{try{const r=await fetch("/api/situations/"+params.id+"/graph",{cache:"no-store"});const j=await r.json();if(r.ok)setGraph(j.graph)}catch{setGraph(null)}};
+ useEffect(()=>{loadGraph()},[params.id]);
+ const detectGaps=async()=>{setDetecting(true);setUploadError("");try{const r=await fetch("/api/situations/"+params.id+"/gaps",{method:"POST"});const j=await r.json();if(!r.ok)throw new Error(j.error||"Gap detection failed");setMessage(j.detected?"Detected "+j.detected+" new gap(s).":"No new gaps detected.");await load();await loadGraph()}catch(e:any){setUploadError(e.message||"Gap detection failed")}finally{setDetecting(false)}};
 
  const upload=async(file:File)=>{
    setUploading(true);setUploadError("");setMessage("");
@@ -76,6 +81,12 @@ export default function SituationPage({params}:{params:{id:string}}){
    </div>
    {uploadError&&<p className="warning">{uploadError}</p>}{message&&<p>{message}</p>}
    {data.documents.length?data.documents.map(x=><div key={x.id} style={{display:"flex",justifyContent:"space-between",padding:"8px 0"}}><span><FileText size={15}/> {x.name}</span><span className="muted">{x.sizeBytes?Math.ceil(x.sizeBytes/1024)+" KB":""}</span></div>):<p className="muted">No documents yet.</p>}
+  </section>
+
+  <section className="detailGrid">
+   <article className="card"><h2><AlertTriangle size={18}/> Gap detection</h2><p className="muted">Check for missing evidence, timeline information and next actions.</p><button className="secondary" disabled={detecting} onClick={detectGaps}>{detecting?"Checking…":"Detect gaps"}</button></article>
+   <article className="card"><h2><CheckCircle2 size={18}/> Human approval</h2><p className="muted">Proposed actions stay pending until you explicitly approve or reject them.</p><b>{data.actions.filter(x=>x.status==="PROPOSED").length} action(s) awaiting approval</b></article>
+   <article className="card"><h2><GitBranch size={18}/> Life graph</h2><p className="muted">{graph?.nodes?.length||0} nodes · {graph?.edges?.length||0} relationships</p>{graph?.nodes?.length?<div style={{display:"grid",gap:6}}>{graph.nodes.slice(0,12).map((n:any)=><div key={n.id} style={{padding:"6px 8px",border:"1px solid var(--line,#ddd)",borderRadius:8}}><b>{n.type}</b> · {n.label}{n.status?" · "+n.status:""}</div>)}</div>:<p className="muted">Add documents, events or actions to build the graph.</p>}</article>
   </section>
 
   <section className="detailGrid">
