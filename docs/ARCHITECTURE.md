@@ -1,7 +1,9 @@
 # CueMesh Architecture
 
 ## Request path
-Web UI -> Route/API layer -> domain services -> database/object storage -> AI provider abstraction.
+Web UI -> Route/API layer -> domain services -> database-free in-memory store -> AI provider abstraction.
+
+The current deployment does not require PostgreSQL, Prisma, or a database service. The store is process-local and therefore intentionally non-durable.
 
 ## Core domains
 - situations
