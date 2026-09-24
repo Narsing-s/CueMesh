@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(request: Request, { params }: { params: { id: string } }) {
+  if (request.headers.get("x-cuemesh-role") !== "human")
+    return NextResponse.json({ error: "Human review is required. Set x-cuemesh-role: human." }, { status: 403 });
+
   const action = await prisma.action.findUnique({ where: { id: params.id } });
   if (!action) return NextResponse.json({ error: "Action not found" }, { status: 404 });
   if (action.status !== "PROPOSED") return NextResponse.json({ error: "Only proposed actions can be rejected" }, { status: 409 });
