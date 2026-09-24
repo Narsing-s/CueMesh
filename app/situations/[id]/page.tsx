@@ -47,7 +47,7 @@ export default function SituationPage({params}:{params:{id:string}}){
  };
 
  const actionUpdate=async(id:string,kind:"approve"|"reject"|"complete")=>{
-   const r=await fetch("/api/actions/"+id+"/"+kind,{method:"POST"});const j=await r.json();
+   const r=await fetch("/api/actions/"+id+"/"+kind,{method:"POST",headers:{"x-cuemesh-role":"human","x-cuemesh-actor":"current-user"}});const j=await r.json();
    if(!r.ok){setUploadError(j.error||"Action update failed");return}
    setMessage("Action updated.");await load();
  };
