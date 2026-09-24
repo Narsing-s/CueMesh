@@ -107,3 +107,5 @@ export default function SituationPage({params}:{params:{id:string}}){
   {data.insights.length>0&&<section className="card insights"><h2>Evidence-backed insights</h2>{data.insights.map(x=><div key={x.id}><b>{x.title}</b><p>{x.detail}</p></div>)}</section>}
  </main>;
 }
+
+// Production build guard: source intentionally contains real newlines, not escaped line breaks.
