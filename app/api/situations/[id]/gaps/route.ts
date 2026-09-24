@@ -25,6 +25,7 @@ export async function POST(_: Request, { params }: { params: { id: string } }) {
       }));
     }
   }
+  if (created.length) await prisma.auditEvent.create({data:{action:"GAPS_DETECTED",entityType:"Situation",entityId:params.id,metadata:{count:created.length,labels:created.map((x:any)=>x.label)}}});
   return NextResponse.json({
     ok:true,
     detected:created.length,
