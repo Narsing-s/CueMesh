@@ -1,33 +1,33 @@
 # CueMesh production checklist
 
-## Implemented foundation
-- Next.js App Router and strict TypeScript
-- Prisma/PostgreSQL data model
-- Persistent situation APIs
-- Action approval/rejection/completion workflow
-- Audit events
-- Upload validation boundary
-- Security headers
-- Docker development database
-- CI build workflow
-- AI provider contract
+## Verified repository baseline
 
-## Before public production
-1. Add real authentication and session management.
-2. Enforce situation/member authorization on every private API.
-3. Add object storage with signed upload URLs.
-4. Add OCR/text extraction workers and document versioning.
-5. Implement a real AI provider with structured-output validation.
-6. Store AI runs, citations, evidence and model metadata.
-7. Add embeddings/vector search and retrieval access controls.
-8. Build graph/entity extraction and contradiction detection.
-9. Add durable background jobs, retries, idempotency and dead-letter handling.
-10. Add notification providers and follow-up scheduling.
-11. Add rate limits, CSRF/origin strategy, secret management and abuse controls.
-12. Add unit, integration, API and E2E tests.
-13. Add observability: structured logs, metrics, traces and alerting.
-14. Add backups, restore drills and retention/deletion workflows.
-15. Threat-model uploads, prompt injection and malicious document content.
-16. Add privacy export/delete and consent/audit controls.
-17. Add accessibility and mobile browser testing.
-18. Configure production database, secrets and deployment.
+- Next.js App Router with strict TypeScript.
+- Current persistence is a process-local, database-free in-memory store. Data is not durable across restarts or serverless instances.
+- Document upload currently uses a validation boundary and in-memory storage; it is not durable object storage.
+- Action approval/rejection/completion workflow and audit-event foundation exist.
+- Security headers and server-side validation are present; these do not replace authentication or authorization.
+- CI runs lint, TypeScript typecheck, and production build. Automated unit, integration, and E2E coverage is still required.
+- AI provider contract exists, but a production provider is not configured by this repository.
+
+## Required before production
+
+1. Add real authentication, secure sessions, logout and account lifecycle.
+2. Enforce situation/member authorization on every private API, including documents, events, actions, graph, replay, exports, consents, jobs, notifications and audit.
+3. Implement durable persistence, migrations, transactions, indexes, multi-instance consistency and tested backup/restore.
+4. Add secure object storage, scoped signed URLs, upload limits, safe filenames and malware scanning where available.
+5. Add document parsing/OCR, versioning, durable processing workers, retries and failure reporting.
+6. Implement a real AI provider with structured-output validation, timeouts, model metadata, cost limits and graceful failure.
+7. Store stable citations/provenance and ensure retrieval is authorization-scoped; support correction and re-indexing.
+8. Add durable jobs, idempotency, bounded retries, dead-letter handling and cancellation.
+9. Add durable reminder scheduling, delivery integrations, timezone handling and delivery status.
+10. Add shared-store rate limits, request/body limits, CSRF/origin protections, secret management and abuse controls.
+11. Implement consent withdrawal, retention, export and verified deletion across primary data, files, derived data, indexes and backup policy.
+12. Add unit, API integration, end-to-end, authorization-isolation, accessibility and failure-path tests.
+13. Add structured logs, correlation IDs, metrics, traces, dashboards, alerts and health/readiness checks.
+14. Add staging, smoke tests, migration compatibility checks, rollback and release notes.
+15. Complete threat modeling for uploads and prompt injection; document incident response and privacy/data-processing disclosures.
+16. Test mobile browsers, keyboard navigation and screen-reader accessibility.
+17. Define operational limits, support path, RPO/RTO, backup retention and restore drills.
+
+Do not describe PostgreSQL/Prisma persistence, durable uploads, delivered reminders, configured AI, or authentication as implemented until the corresponding end-to-end behavior is present and tested.
