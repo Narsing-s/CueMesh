@@ -69,3 +69,21 @@ A capability is not “implemented” merely because a data model, route, placeh
 7. Durable jobs, reminders, and visual Life Graph.
 8. Collaboration, search, exports, and integrations.
 9. Operational hardening and production release review.
+
+
+## Additional audit findings (2026-09-29)
+
+The repository's current `package.json` and CI workflow expose additional readiness work. These are audit observations, not changes to application behavior.
+
+- [ ] **Reproducible dependency installs.** Commit and use the package-manager lockfile; use `npm ci` in CI rather than unconstrained `npm install`. Add dependency update and vulnerability scanning.
+- [ ] **CI quality gates.** Current workflow runs the production build only. Add explicit lint, TypeScript typecheck, unit/integration tests, and build; fail on any required check. Confirm each script exists and works with the selected Next.js version.
+- [ ] **Align stated stack with actual dependencies.** The inspected package manifest does not list Prisma or a database client, while production documentation describes Prisma/PostgreSQL as implemented. Verify repository reality and correct docs or implement the missing adapter before describing persistence as available.
+- [ ] **API contract and compatibility.** Publish an OpenAPI specification, consistent error envelope, input/output schemas, pagination/filtering conventions, API versioning/deprecation policy, and generated contract tests.
+- [ ] **Concurrency and state integrity.** Define optimistic concurrency/version checks for simultaneous edits, idempotency keys for retried writes, transaction boundaries, and conflict-resolution behavior.
+- [ ] **Data portability and lifecycle.** Define import validation, export completeness, deletion verification, backup retention, restore objectives (RPO/RTO), and treatment of data in logs, caches, search indexes, and provider systems.
+- [ ] **Operational limits.** Set upload limits, timeouts, pagination ceilings, queue concurrency, storage quotas, retention defaults, and AI usage budgets; return actionable limit errors.
+- [ ] **User-facing resilience.** Add loading/empty/error states, retry affordances, error boundaries, unsaved-change warnings, and clear status for queued/failed processing.
+- [ ] **Internationalization and time semantics.** Store timestamps consistently, render in the user's selected timezone, handle daylight-saving transitions, and define locale/date/number formatting.
+- [ ] **Product governance.** Define feature flags, consent and revocation for integrations, support/contact path, terms/privacy notices, data-processing disclosures, and incident communication process before public launch.
+- [ ] **Accessibility verification.** Add automated accessibility checks plus keyboard-only and screen-reader testing; document supported browsers and mobile devices.
+- [ ] **Release operations.** Add staging environment, smoke tests, deployment rollback procedure, migration compatibility checks, release notes, and a production go/no-go checklist.
